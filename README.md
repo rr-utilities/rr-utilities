@@ -14,7 +14,7 @@ Raisonix produziert, verwaltet und vertreibt in unterschiedlichen Divisionen eig
 
 ## Meilensteine
 
-1. **Intervall I** (1. Januar 2026): Mit der Umbenennung von RR Eigenverlag zu Raisonix beginnt Raisonix nun zu wachsen.
+1. **Intervall I** (1. Januar 2026): Erster Intervall mit wichtigen und grundlegenden Projekten.
 2. **Veröffentlichung Hub 1** (3. Mai 2025): eLibrary mit diversen Nachschlagewerken, Unterlagen und Webseiten unterstützend für den Schulalltag.
 3. **Veröffentlichung Hub 2** (6. September 2025): Forum digitalis  mit Guides und Nachschlagewerken für LaTeX, HTML etc.
 4. **Veröffentlichung Hub 3** (7. Januar 2026): MAKEITART mit eigener Kunstgallerie.
