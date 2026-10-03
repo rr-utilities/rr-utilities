@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-[#030303] text-zinc-100 dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Music WebApp</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030303;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030303;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
+        }
+        input[type="range"] {
+            accent-color: #ef4444;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col overflow-hidden select-none">
+
+    <header class="h-16 border-b border-zinc-800/60 bg-[#030303]/90 backdrop-blur-md flex items-center justify-between px-4 md:px-8 shrink-0 z-30">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="navigateTo('home')">
+                <div class="bg-red-600 rounded-full p-2 text-white shadow-lg shadow-red-600/30">
+                    <i data-lucide="play" class="w-5 h-5 fill-current"></i>
+                </div>
+                <span class="font-bold text-xl tracking-tight hidden sm:inline text-white">Music</span>
+            </div>
+            <nav class="hidden md:flex items-center gap-6 ml-4 text-sm font-medium text-zinc-400">
+                <button onclick="navigateTo('home')" class="hover:text-white transition flex items-center gap-2">
+                    <i data-lucide="home" class="w-4 h-4"></i> Startseite
+                </button>
+                <button onclick="navigateTo('library')" class="hover:text-white transition flex items-center gap-2">
+                    <i data-lucide="library" class="w-4 h-4"></i> Mediathek
+                </button>
+            </nav>
+        </div>
+
+        <!-- Search Input Bar -->
+        <div class="flex-1 max-w-xl mx-4">
+            <form onsubmit="handleSearchSubmit(event)" class="relative">
+                <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"></i>
+                <input id="searchInput" type="text" placeholder="Song, Künstler, Album oder YouTube-Link / ID..." 
+                    class="w-full bg-zinc-900/90 border border-zinc-800 text-sm text-white pl-10 pr-10 py-2 rounded-full focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition placeholder-zinc-500">
+                <button type="button" onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button onclick="navigateTo('liked')" class="p-2 text-zinc-400 hover:text-red-500 transition rounded-full hover:bg-zinc-900" title="Lieblingssongs">
+                <i data-lucide="heart" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto pb-28" id="mainContent">
+        
+        <!-- Search Results View -->
+        <div id="searchView" class="p-4 md:p-8 max-w-7xl mx-auto hidden">
+            <!-- Category Tabs -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-zinc-800/60 no-scrollbar">
+                <button onclick="setSearchFilter('all')" class="search-tab px-4 py-1.5 rounded-full text-sm font-medium bg-white text-black transition shrink-0" data-filter="all">Alle</button>
+                <button onclick="setSearchFilter('songs')" class="search-tab px-4 py-1.5 rounded-full text-sm font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition shrink-0 border border-zinc-800" data-filter="songs">Songs</button>
+                <button onclick="setSearchFilter('artists')" class="search-tab px-4 py-1.5 rounded-full text-sm font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition shrink-0 border border-zinc-800" data-filter="artists">Künstler</button>
+                <button onclick="setSearchFilter('albums')" class="search-tab px-4 py-1.5 rounded-full text-sm font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition shrink-0 border border-zinc-800" data-filter="albums">Alben / EPs</button>
+            </div>
+
+            <div id="searchLoading" class="hidden text-center py-12 text-zinc-500 flex flex-col items-center gap-3">
+                <div class="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-sm">Durchsuche Musik-Server...</p>
+            </div>
+
+            <div id="searchResultsContainer" class="space-y-8"></div>
+        </div>
+
+        <!-- Artist Profile Detail View -->
+        <div id="artistView" class="p-4 md:p-8 max-w-7xl mx-auto hidden">
+            <div id="artistHeader" class="flex flex-col sm:flex-row items-center sm:items-end gap-6 mb-8 bg-gradient-to-b from-zinc-900 to-transparent p-6 rounded-2xl border border-zinc-800/40"></div>
+            
+            <div class="space-y-8">
+                <section>
+                    <h3 class="text-xl font-bold mb-4 text-white">Top Songs</h3>
+                    <div id="artistSongs" class="space-y-1"></div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Home View -->
+        <div id="homeView" class="p-4 md:p-8 max-w-7xl mx-auto">
+            <h2 class="text-3xl font-bold mb-6 text-white">Startseite</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                <div onclick="navigateTo('liked')" class="bg-zinc-900/80 hover:bg-zinc-800/80 transition p-4 rounded-xl flex items-center gap-4 cursor-pointer border border-zinc-800/60">
+                    <div class="w-16 h-16 bg-gradient-to-br from-red-600 to-red-900 rounded-lg flex items-center justify-center shrink-0">
+                        <i data-lucide="heart" class="w-8 h-8 text-white fill-current"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-white">Lieblingssongs</h3>
+                        <p class="text-sm text-zinc-400" id="likedCount">0 Songs</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold mb-4 text-white">Meine Playlists</h3>
+            <div id="homePlaylists" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <div onclick="createNewPlaylistPrompt()" class="border-2 border-dashed border-zinc-800 hover:border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center min-h-[180px] cursor-pointer text-zinc-400 hover:text-white transition">
+                    <i data-lucide="plus-circle" class="w-8 h-8 mb-2"></i>
+                    <span class="text-sm font-medium">Neue Playlist</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Library View -->
+        <div id="libraryView" class="p-4 md:p-8 max-w-7xl mx-auto hidden">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-bold text-white">Mediathek</h2>
+                <button onclick="createNewPlaylistPrompt()" class="bg-white hover:bg-zinc-200 text-black px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-2">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Playlist erstellen
+                </button>
+            </div>
+            <div id="libraryContent" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+        </div>
+
+        <!-- Playlist Detail View -->
+        <div id="playlistDetailView" class="p-4 md:p-8 max-w-7xl mx-auto hidden">
+            <div id="playlistHeader" class="flex flex-col sm:flex-row items-center sm:items-end gap-6 mb-8"></div>
+            <div id="playlistTracks" class="space-y-1"></div>
+        </div>
+    </main>
+
+    <footer class="fixed bottom-0 left-0 right-0 h-20 bg-zinc-950/95 border-t border-zinc-800/80 backdrop-blur-xl px-4 flex items-center justify-between z-40">
+        <!-- Currently Playing Song Details -->
+        <div class="flex items-center gap-3 w-1/4 min-w-[180px]">
+            <img id="playerThumb" src="https://placehold.co/60x60/18181b/ffffff?text=Music" class="w-12 h-12 rounded object-cover border border-zinc-800">
+            <div class="overflow-hidden">
+                <div id="playerTitle" class="text-sm font-semibold text-white truncate">Kein Song gewählt</div>
+                <div id="playerArtist" class="text-xs text-zinc-400 truncate">Suche nach Musik</div>
+            </div>
+            <button id="likeCurrentBtn" onclick="toggleLikeCurrent()" class="ml-2 text-zinc-500 hover:text-red-500 transition hidden sm:block">
+                <i data-lucide="heart" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Player Controls -->
+        <div class="flex flex-col items-center gap-1 w-2/4 max-w-xl">
+            <div class="flex items-center gap-4">
+                <button id="shuffleBtn" onclick="toggleShuffle()" class="text-zinc-500 hover:text-white transition" title="Zufallswiedergabe">
+                    <i data-lucide="shuffle" class="w-4 h-4"></i>
+                </button>
+                <button onclick="playPrev()" class="text-zinc-300 hover:text-white transition" title="Vorheriger Song">
+                    <i data-lucide="skip-back" class="w-5 h-5 fill-current"></i>
+                </button>
+                <button id="playPauseBtn" onclick="togglePlayPause()" class="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition shadow-md">
+                    <i data-lucide="play" class="w-5 h-5 fill-current ml-0.5"></i>
+                </button>
+                <button onclick="playNext()" class="text-zinc-300 hover:text-white transition" title="Nächster Song">
+                    <i data-lucide="skip-forward" class="w-5 h-5 fill-current"></i>
+                </button>
+                <button id="loopBtn" onclick="toggleLoop()" class="text-zinc-500 hover:text-white transition" title="Wiederholen">
+                    <i data-lucide="repeat" class="w-4 h-4"></i>
+                </button>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="w-full flex items-center gap-2 text-xs text-zinc-400">
+                <span id="currentTime">0:00</span>
+                <input type="range" id="progressBar" value="0" max="100" class="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-red-600" oninput="seekTo(this.value)">
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+
+        <!-- Volume Control -->
+        <div class="flex items-center justify-end gap-3 w-1/4 min-w-[140px]">
+            <i data-lucide="volume-2" class="w-4 h-4 text-zinc-400 hidden sm:block"></i>
+            <input type="range" id="volumeBar" value="100" max="100" class="w-20 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-red-600 hidden sm:block" oninput="setVolume(this.value)">
+        </div>
+    </footer>
+
+    <!-- Hidden YouTube Audio Embed -->
+    <div class="hidden">
+        <div id="ytPlayer"></div>
+    </div>
+
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        let appState = {
+            currentView: 'home',
+            currentFilter: 'all',
+            searchQuery: '',
+            playlists: JSON.parse(localStorage.getItem('ytm_playlists') || '[]'),
+            likedSongs: JSON.parse(localStorage.getItem('ytm_liked') || '[]'),
+            queue: [],
+            queueIndex: -1,
+            isShuffle: false,
+            isLoop: false,
+            currentTrack: null
+        };
+
+        let ytPlayer = null;
+        let isPlayerReady = false;
+        let progressInterval = null;
+
+        // Endpoints to query in parallel/race sequence
+        const PIPED_INSTANCES = [
+            'https://pipedapi.kavin.rocks',
+            'https://pipedapi.mha.fi',
+            'https://api.piped.privacydev.net',
+            'https://piped-api.garudalinux.org'
+        ];
+
+        const INVIDIOUS_INSTANCES = [
+            'https://inv.tux.pizza',
+            'https://yewtu.be',
+            'https://invidious.nerdvpn.de',
+            'https://vid.puffyan.us'
+        ];
+
+        function savePlaylists() {
+            localStorage.setItem('ytm_playlists', JSON.stringify(appState.playlists));
+            renderHomePlaylists();
+        }
+
+        function saveLikedSongs() {
+            localStorage.setItem('ytm_liked', JSON.stringify(appState.likedSongs));
+            document.getElementById('likedCount').innerText = `${appState.likedSongs.length} Songs`;
+        }
+
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('ytPlayer', {
+                height: '0',
+                width: '0',
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 0,
+                    'playsinline': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            isPlayerReady = true;
+            ytPlayer.setVolume(100);
+        }
+
+        function onPlayerStateChange(event) {
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            if (event.data === YT.PlayerState.PLAYING) {
+                playPauseBtn.innerHTML = '<i data-lucide="pause" class="w-5 h-5 fill-current"></i>';
+                lucide.createIcons();
+                startProgressTracker();
+            } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+                playPauseBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5 fill-current ml-0.5"></i>';
+                lucide.createIcons();
+                stopProgressTracker();
+                if (event.data === YT.PlayerState.ENDED) {
+                    playNext();
+                }
+            }
+        }
+
+        async function playTrack(videoId, title, artist, thumbnail) {
+            if (!videoId || videoId === 'PENDING') {
+                videoId = extractYouTubeId(title) || await resolveYouTubeId(`${title} ${artist}`);
+            }
+
+            if (!videoId) {
+                alert('Audio konnte nicht geladen werden. Bitte versuche die direkte YouTube-URL einzugeben.');
+                return;
+            }
+
+            appState.currentTrack = { videoId, title, artist, thumbnail };
+            
+            document.getElementById('playerTitle').innerText = title;
+            document.getElementById('playerArtist').innerText = artist;
+            document.getElementById('playerThumb').src = thumbnail || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+            
+            updateLikeButton();
+
+            if (isPlayerReady && ytPlayer) {
+                ytPlayer.loadVideoById(videoId);
+            }
+        }
+
+        function extractYouTubeId(url) {
+            if (!url) return null;
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            if (match && match[2].length === 11) return match[2];
+            if (url.trim().length === 11 && !url.includes(' ')) return url.trim();
+            return null;
+        }
+
+        async function fetchWithTimeout(url, ms = 2500) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), ms);
+            try {
+                const response = await fetch(url, { signal: controller.signal });
+                clearTimeout(id);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (e) {
+                clearTimeout(id);
+                throw e;
+            }
+        }
+
+        async function resolveYouTubeId(query) {
+            // Attempt 1: Piped fast search
+            for (const instance of PIPED_INSTANCES) {
+                try {
+                    const data = await fetchWithTimeout(`${instance}/search?q=${encodeURIComponent(query)}&filter=videos`, 2000);
+                    if (data && data.items && data.items.length > 0) {
+                        const id = data.items[0].url ? data.items[0].url.replace('/watch?v=', '') : null;
+                        if (id) return id;
+                    }
+                } catch (e) {}
+            }
+            // Attempt 2: Invidious search
+            for (const instance of INVIDIOUS_INSTANCES) {
+                try {
+                    const data = await fetchWithTimeout(`${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video`, 2000);
+                    if (data && data.length > 0 && data[0].videoId) {
+                        return data[0].videoId;
+                    }
+                } catch (e) {}
+            }
+            return null;
+        }
+
+        function togglePlayPause() {
+            if (!ytPlayer || !appState.currentTrack) return;
+            const state = ytPlayer.getPlayerState();
+            if (state === YT.PlayerState.PLAYING) {
+                ytPlayer.pauseVideo();
+            } else {
+                ytPlayer.playVideo();
+            }
+        }
+
+        function playNext() {
+            if (appState.queue.length === 0) return;
+            if (appState.isShuffle) {
+                appState.queueIndex = Math.floor(Math.random() * appState.queue.length);
+            } else {
+                appState.queueIndex = (appState.queueIndex + 1) % appState.queue.length;
+            }
+            const track = appState.queue[appState.queueIndex];
+            if (track) playTrack(track.videoId, track.title, track.artist, track.thumbnail);
+        }
+
+        function playPrev() {
+            if (appState.queue.length === 0) return;
+            appState.queueIndex = (appState.queueIndex - 1 + appState.queue.length) % appState.queue.length;
+            const track = appState.queue[appState.queueIndex];
+            if (track) playTrack(track.videoId, track.title, track.artist, track.thumbnail);
+        }
+
+        function seekTo(percent) {
+            if (!ytPlayer || !ytPlayer.getDuration) return;
+            const duration = ytPlayer.getDuration();
+            ytPlayer.seekTo((percent / 100) * duration, true);
+        }
+
+        function setVolume(value) {
+            if (ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(value);
+        }
+
+        function startProgressTracker() {
+            stopProgressTracker();
+            progressInterval = setInterval(() => {
+                if (!ytPlayer || !ytPlayer.getCurrentTime) return;
+                const currentTime = ytPlayer.getCurrentTime() || 0;
+                const duration = ytPlayer.getDuration() || 0;
+                
+                document.getElementById('currentTime').innerText = formatTime(currentTime);
+                document.getElementById('duration').innerText = formatTime(duration);
+                
+                if (duration > 0) {
+                    document.getElementById('progressBar').value = (currentTime / duration) * 100;
+                }
+            }, 1000);
+        }
+
+        function stopProgressTracker() {
+            if (progressInterval) clearInterval(progressInterval);
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        function toggleShuffle() {
+            appState.isShuffle = !appState.isShuffle;
+            document.getElementById('shuffleBtn').classList.toggle('text-red-500', appState.isShuffle);
+            document.getElementById('shuffleBtn').classList.toggle('text-zinc-500', !appState.isShuffle);
+        }
+
+        function toggleLoop() {
+            appState.isLoop = !appState.isLoop;
+            document.getElementById('loopBtn').classList.toggle('text-red-500', appState.isLoop);
+            document.getElementById('loopBtn').classList.toggle('text-zinc-500', !appState.isLoop);
+        }
+
+        async function handleSearchSubmit(e) {
+            if (e) e.preventDefault();
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            const directVideoId = extractYouTubeId(query);
+            if (directVideoId) {
+                playSingleTrack(directVideoId, 'YouTube Song', 'Direktlink', `https://img.youtube.com/vi/${directVideoId}/hqdefault.jpg`);
+                return;
+            }
+
+            appState.searchQuery = query;
+            document.getElementById('clearSearchBtn').classList.remove('hidden');
+            navigateTo('search');
+            
+            fetchSearchResults(query);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+        }
+
+        async function fetchSearchResults(query) {
+            const loading = document.getElementById('searchLoading');
+            const container = document.getElementById('searchResultsContainer');
+            
+            loading.classList.remove('hidden');
+            container.innerHTML = '';
+
+            let songs = [], artists = [], albums = [];
+
+            // 1. Try Piped Instances
+            for (const instance of PIPED_INSTANCES) {
+                try {
+                    const data = await fetchWithTimeout(`${instance}/search?q=${encodeURIComponent(query)}&filter=all`, 3000);
+                    if (data && data.items && data.items.length > 0) {
+                        data.items.forEach(item => {
+                            if (item.type === 'stream') {
+                                songs.push({
+                                    videoId: item.url ? item.url.replace('/watch?v=', '') : '',
+                                    title: item.title,
+                                    artist: item.uploaderName || 'Unbekannt',
+                                    thumbnail: item.thumbnail
+                                });
+                            } else if (item.type === 'channel') {
+                                artists.push({
+                                    name: item.name,
+                                    thumbnail: item.thumbnail
+                                });
+                            } else if (item.type === 'playlist') {
+                                albums.push({
+                                    title: item.title,
+                                    artist: item.uploaderName || 'Playlist',
+                                    thumbnail: item.thumbnail
+                                });
+                            }
+                        });
+                        if (songs.length > 0) break;
+                    }
+                } catch (e) {}
+            }
+
+            // 2. Try Deezer Metadata Fallback if empty
+            if (songs.length === 0) {
+                try {
+                    const data = await fetchWithTimeout(`https://api.deezer.com/search?q=${encodeURIComponent(query)}&output=jsonp`, 3000);
+                } catch (e) {}
+
+                try {
+                    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=20`);
+                    const data = await res.json();
+                    if (data && data.results) {
+                        data.results.forEach(item => {
+                            if (item.wrapperType === 'track') {
+                                songs.push({
+                                    videoId: null, // Will resolve on play
+                                    title: item.trackName,
+                                    artist: item.artistName,
+                                    thumbnail: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '300x300bb') : ''
+                                });
+                            }
+                        });
+                    }
+                } catch (e) {}
+            }
+
+            loading.classList.add('hidden');
+
+            if (songs.length > 0 || artists.length > 0 || albums.length > 0) {
+                renderSearchResults({ songs, artists, albums });
+            } else {
+                container.innerHTML = `
+                    <div class="text-center text-zinc-500 py-12">
+                        <i data-lucide="search-x" class="w-10 h-10 mx-auto mb-3 opacity-50"></i>
+                        <p class="text-base font-medium">Keine Ergebnisse für "${escapeHtml(query)}" gefunden.</p>
+                        <p class="text-xs mt-2 text-zinc-400">Tipp: Kopiere den YouTube-Link oder die Video-ID direkt in das Suchfeld oben!</p>
+                    </div>`;
+                lucide.createIcons();
+            }
+        }
+
+        function setSearchFilter(filter) {
+            appState.currentFilter = filter;
+            document.querySelectorAll('.search-tab').forEach(btn => {
+                if (btn.dataset.filter === filter) {
+                    btn.className = 'search-tab px-4 py-1.5 rounded-full text-sm font-medium bg-white text-black transition shrink-0';
+                } else {
+                    btn.className = 'search-tab px-4 py-1.5 rounded-full text-sm font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition shrink-0 border border-zinc-800';
+                }
+            });
+            if (appState.searchQuery) {
+                fetchSearchResults(appState.searchQuery);
+            }
+        }
+
+        function renderSearchResults(data) {
+            const container = document.getElementById('searchResultsContainer');
+            container.innerHTML = '';
+
+            const { songs, artists, albums } = data;
+            const filter = appState.currentFilter;
+
+            if ((filter === 'all' || filter === 'songs') && songs && songs.length > 0) {
+                const songSection = document.createElement('div');
+                songSection.innerHTML = `
+                    <h3 class="text-xl font-bold mb-4 text-white">Songs</h3>
+                    <div class="space-y-1">
+                        ${songs.slice(0, filter === 'songs' ? 30 : 6).map(v => `
+                            <div onclick="playSingleTrack('${v.videoId || ''}', '${escapeHtml(v.title)}', '${escapeHtml(v.artist)}', '${v.thumbnail}')" 
+                                class="flex items-center justify-between p-2 rounded-lg hover:bg-zinc-900/80 cursor-pointer group transition">
+                                <div class="flex items-center gap-3 overflow-hidden">
+                                    <img src="${v.thumbnail || 'https://placehold.co/50x50'}" class="w-11 h-11 rounded object-cover">
+                                    <div class="truncate">
+                                        <div class="text-sm font-medium text-white truncate group-hover:text-red-500 transition">${v.title}</div>
+                                        <div class="text-xs text-zinc-400 truncate">${v.artist}</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="event.stopPropagation(); showAddToPlaylistModal('${v.videoId || ''}', '${escapeHtml(v.title)}', '${escapeHtml(v.artist)}', '${v.thumbnail}')" 
+                                        class="p-2 text-zinc-400 hover:text-white transition rounded-full hover:bg-zinc-800" title="Zu Playlist hinzufügen">
+                                        <i data-lucide="plus" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(songSection);
+            }
+
+            if ((filter === 'all' || filter === 'artists') && artists && artists.length > 0) {
+                const artistSection = document.createElement('div');
+                artistSection.innerHTML = `
+                    <h3 class="text-xl font-bold mb-4 text-white">Künstler</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        ${artists.slice(0, 5).map(c => `
+                            <div onclick="openArtistPage('${escapeHtml(c.name)}', '${c.thumbnail}')" 
+                                class="bg-zinc-900/50 hover:bg-zinc-800/80 p-4 rounded-xl cursor-pointer flex flex-col items-center text-center transition border border-zinc-800/40">
+                                <img src="${c.thumbnail || 'https://placehold.co/100x100'}" class="w-24 h-24 rounded-full object-cover mb-3 shadow-md">
+                                <span class="font-semibold text-sm text-white truncate w-full">${c.name}</span>
+                                <span class="text-xs text-zinc-400 mt-1">Künstler</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(artistSection);
+            }
+
+            if ((filter === 'all' || filter === 'albums') && albums && albums.length > 0) {
+                const albumSection = document.createElement('div');
+                albumSection.innerHTML = `
+                    <h3 class="text-xl font-bold mb-4 text-white">Alben & Playlists</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        ${albums.slice(0, 5).map(a => `
+                            <div class="bg-zinc-900/50 hover:bg-zinc-800/80 p-3 rounded-xl transition border border-zinc-800/40">
+                                <img src="${a.thumbnail || 'https://placehold.co/150x150'}" class="w-full aspect-square rounded-lg object-cover mb-3">
+                                <div class="font-semibold text-sm text-white truncate">${a.title}</div>
+                                <div class="text-xs text-zinc-400 truncate mt-0.5">${a.artist}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(albumSection);
+            }
+
+            lucide.createIcons();
+        }
+
+        function playSingleTrack(videoId, title, artist, thumbnail) {
+            appState.queue = [{ videoId, title, artist, thumbnail }];
+            appState.queueIndex = 0;
+            playTrack(videoId, title, artist, thumbnail);
+        }
+
+        async function openArtistPage(authorName, authorImg) {
+            navigateTo('artist');
+            
+            const header = document.getElementById('artistHeader');
+            header.innerHTML = `
+                <img src="${authorImg || 'https://placehold.co/120x120'}" class="w-32 h-32 rounded-full object-cover shadow-2xl border-2 border-zinc-700">
+                <div class="text-center sm:text-left">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-red-500">KÜNSTLER</span>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold text-white mt-1 mb-3">${authorName}</h1>
+                </div>
+            `;
+
+            const songsContainer = document.getElementById('artistSongs');
+            songsContainer.innerHTML = `<div class="text-zinc-500 text-sm">Lade Songs...</div>`;
+
+            try {
+                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(authorName)}&entity=song&limit=10`);
+                const data = await res.json();
+                
+                if (data && data.results) {
+                    songsContainer.innerHTML = data.results.map(v => `
+                        <div onclick="playSingleTrack('', '${escapeHtml(v.trackName)}', '${escapeHtml(v.artistName)}', '${v.artworkUrl100}')" 
+                            class="flex items-center justify-between p-2 rounded-lg hover:bg-zinc-900 cursor-pointer group transition">
+                            <div class="flex items-center gap-3">
+                                <img src="${v.artworkUrl100 || 'https://placehold.co/50x50'}" class="w-10 h-10 rounded object-cover">
+                                <div>
+                                    <div class="text-sm font-medium text-white group-hover:text-red-500 transition">${v.trackName}</div>
+                                    <div class="text-xs text-zinc-400">${v.artistName}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                songsContainer.innerHTML = `<div class="text-zinc-500 text-sm">Fehler beim Laden.</div>`;
+            }
+        }
+
+        // Favorites & Playlists
+        function toggleLikeCurrent() {
+            if (!appState.currentTrack) return;
+            const index = appState.likedSongs.findIndex(s => s.title === appState.currentTrack.title && s.artist === appState.currentTrack.artist);
+            if (index > -1) {
+                appState.likedSongs.splice(index, 1);
+            } else {
+                appState.likedSongs.push(appState.currentTrack);
+            }
+            saveLikedSongs();
+            updateLikeButton();
+        }
+
+        function updateLikeButton() {
+            if (!appState.currentTrack) return;
+            const isLiked = appState.likedSongs.some(s => s.title === appState.currentTrack.title && s.artist === appState.currentTrack.artist);
+            const btn = document.getElementById('likeCurrentBtn');
+            if (isLiked) {
+                btn.className = 'ml-2 text-red-500 transition hidden sm:block';
+            } else {
+                btn.className = 'ml-2 text-zinc-500 hover:text-red-500 transition hidden sm:block';
+            }
+        }
+
+        function createNewPlaylistPrompt() {
+            const name = prompt('Name der neuen Playlist:');
+            if (name && name.trim()) {
+                appState.playlists.push({
+                    id: Date.now().toString(),
+                    name: name.trim(),
+                    tracks: []
+                });
+                savePlaylists();
+            }
+        }
+
+        function renderHomePlaylists() {
+            const container = document.getElementById('homePlaylists');
+            const userPlaylists = appState.playlists.map(p => `
+                <div onclick="openPlaylistView('${p.id}')" class="bg-zinc-900/50 hover:bg-zinc-800/80 p-4 rounded-xl cursor-pointer transition border border-zinc-800/40 flex flex-col justify-between min-h-[180px]">
+                    <div class="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400 mb-3">
+                        <i data-lucide="music" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-white truncate">${p.name}</h4>
+                        <p class="text-xs text-zinc-400 mt-1">${p.tracks.length} Songs</p>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <div onclick="createNewPlaylistPrompt()" class="border-2 border-dashed border-zinc-800 hover:border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center min-h-[180px] cursor-pointer text-zinc-400 hover:text-white transition">
+                    <i data-lucide="plus-circle" class="w-8 h-8 mb-2"></i>
+                    <span class="text-sm font-medium">Neue Playlist</span>
+                </div>
+                ${userPlaylists}
+            `;
+            lucide.createIcons();
+        }
+
+        function showAddToPlaylistModal(videoId, title, artist, thumbnail) {
+            if (appState.playlists.length === 0) {
+                if (confirm('Du hast noch keine Playlist. Möchtest du eine erstellen?')) {
+                    createNewPlaylistPrompt();
+                }
+                return;
+            }
+
+            const playlistNames = appState.playlists.map((p, idx) => `${idx + 1}. ${p.name}`).join('\n');
+            const choice = prompt(`Zu welcher Playlist hinzufügen?\n\n${playlistNames}\n\nGib die Nummer ein:`);
+            const num = parseInt(choice);
+
+            if (num > 0 && num <= appState.playlists.length) {
+                const targetPlaylist = appState.playlists[num - 1];
+                if (!targetPlaylist.tracks.some(t => t.title === title && t.artist === artist)) {
+                    targetPlaylist.tracks.push({ videoId, title, artist, thumbnail });
+                    savePlaylists();
+                    alert(`Zu "${targetPlaylist.name}" hinzugefügt!`);
+                } else {
+                    alert('Song ist bereits in dieser Playlist.');
+                }
+            }
+        }
+
+        function openPlaylistView(playlistId) {
+            const playlist = appState.playlists.find(p => p.id === playlistId);
+            if (!playlist) return;
+
+            navigateTo('playlistDetail');
+
+            const header = document.getElementById('playlistHeader');
+            header.innerHTML = `
+                <div class="w-32 h-32 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 shadow-xl">
+                    <i data-lucide="music" class="w-12 h-12"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-red-500">PLAYLIST</span>
+                    <h1 class="text-3xl font-extrabold text-white mt-1 mb-2">${playlist.name}</h1>
+                    <p class="text-sm text-zinc-400">${playlist.tracks.length} Songs</p>
+                </div>
+            `;
+
+            const tracksContainer = document.getElementById('playlistTracks');
+            tracksContainer.innerHTML = playlist.tracks.map((v, i) => `
+                <div onclick="playSingleTrack('${v.videoId || ''}', '${escapeHtml(v.title)}', '${escapeHtml(v.artist)}', '${v.thumbnail}')" 
+                    class="flex items-center justify-between p-2 rounded-lg hover:bg-zinc-900 cursor-pointer group transition">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-zinc-500 w-4">${i + 1}</span>
+                        <img src="${v.thumbnail || 'https://placehold.co/50x50'}" class="w-10 h-10 rounded object-cover">
+                        <div>
+                            <div class="text-sm font-medium text-white group-hover:text-red-500 transition">${v.title}</div>
+                            <div class="text-xs text-zinc-400">${v.artist}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function navigateTo(view) {
+            appState.currentView = view;
+            
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('searchView').classList.add('hidden');
+            document.getElementById('artistView').classList.add('hidden');
+            document.getElementById('libraryView').classList.add('hidden');
+            document.getElementById('playlistDetailView').classList.add('hidden');
+
+            if (view === 'home') document.getElementById('homeView').classList.remove('hidden');
+            if (view === 'search') document.getElementById('searchView').classList.remove('hidden');
+            if (view === 'artist') document.getElementById('artistView').classList.remove('hidden');
+            if (view === 'library') {
+                document.getElementById('libraryView').classList.remove('hidden');
+                document.getElementById('libraryContent').innerHTML = document.getElementById('homePlaylists').innerHTML;
+            }
+            if (view === 'playlistDetail') document.getElementById('playlistDetailView').classList.remove('hidden');
+            if (view === 'liked') {
+                openPlaylistViewCustom('Lieblingssongs', appState.likedSongs);
+            }
+        }
+
+        function openPlaylistViewCustom(title, tracks) {
+            navigateTo('playlistDetail');
+            const header = document.getElementById('playlistHeader');
+            header.innerHTML = `
+                <div class="w-32 h-32 bg-gradient-to-br from-red-600 to-red-900 rounded-2xl flex items-center justify-center text-white shadow-xl">
+                    <i data-lucide="heart" class="w-12 h-12 fill-current"></i>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-red-500">SAMMLUNG</span>
+                    <h1 class="text-3xl font-extrabold text-white mt-1 mb-2">${title}</h1>
+                    <p class="text-sm text-zinc-400">${tracks.length} Songs</p>
+                </div>
+            `;
+
+            const tracksContainer = document.getElementById('playlistTracks');
+            tracksContainer.innerHTML = tracks.map((v, i) => `
+                <div onclick="playSingleTrack('${v.videoId || ''}', '${escapeHtml(v.title)}', '${escapeHtml(v.artist)}', '${v.thumbnail}')" 
+                    class="flex items-center justify-between p-2 rounded-lg hover:bg-zinc-900 cursor-pointer group transition">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-zinc-500 w-4">${i + 1}</span>
+                        <img src="${v.thumbnail || 'https://placehold.co/50x50'}" class="w-10 h-10 rounded object-cover">
+                        <div>
+                            <div class="text-sm font-medium text-white group-hover:text-red-500 transition">${v.title}</div>
+                            <div class="text-xs text-zinc-400">${v.artist}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        window.onload = function() {
+            lucide.createIcons();
+            saveLikedSongs();
+            renderHomePlaylists();
+        };
+    </script>
+</body>
+</html>
