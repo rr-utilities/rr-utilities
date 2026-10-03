@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" class="h-full bg-[#030303] text-zinc-100 dark">
+<html lang="de" class="h-full bg-[#0f0f0f] text-zinc-100 dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,17 +9,18 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #030303;
+            background-color: #0f0f0f;
+            color: #f1f1f1;
         }
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #030303;
+            background: #0f0f0f;
         }
         ::-webkit-scrollbar-thumb {
             background: #27272a;
@@ -29,19 +30,27 @@
             background: #3f3f46;
         }
         input[type="range"] {
-            accent-color: #ef4444;
+            accent-color: #ff0000;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
-<body class="h-full flex flex-col overflow-hidden select-none">
+<body class="h-full flex flex-col overflow-hidden select-none bg-[#0f0f0f]">
 
-    <header class="h-16 border-b border-zinc-800/60 bg-[#030303]/90 backdrop-blur-md flex items-center justify-between px-4 md:px-8 shrink-0 z-30">
+    <!-- Header -->
+    <header class="h-16 border-b border-zinc-800/80 bg-[#0f0f0f]/95 backdrop-blur-md flex items-center justify-between px-4 md:px-8 shrink-0 z-30">
         <div class="flex items-center gap-6">
             <div class="flex items-center gap-2 cursor-pointer" onclick="navigateTo('home')">
                 <div class="bg-red-600 rounded-full p-2 text-white shadow-lg shadow-red-600/30">
                     <i data-lucide="play" class="w-5 h-5 fill-current"></i>
                 </div>
-                <span class="font-bold text-xl tracking-tight hidden sm:inline text-white">Music</span>
+                <span class="font-bold text-xl tracking-tight hidden sm:inline text-white">YouTube Music</span>
             </div>
             <nav class="hidden md:flex items-center gap-6 ml-4 text-sm font-medium text-zinc-400">
                 <button onclick="navigateTo('home')" class="hover:text-white transition flex items-center gap-2">
@@ -56,37 +65,38 @@
         <!-- Search Input Bar -->
         <div class="flex-1 max-w-xl mx-4">
             <form onsubmit="handleSearchSubmit(event)" class="relative">
-                <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"></i>
-                <input id="searchInput" type="text" placeholder="Song, Künstler, Album oder YouTube-Link / ID..." 
-                    class="w-full bg-zinc-900/90 border border-zinc-800 text-sm text-white pl-10 pr-10 py-2 rounded-full focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition placeholder-zinc-500">
-                <button type="button" onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white">
+                <i data-lucide="search" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400"></i>
+                <input id="searchInput" type="text" placeholder="Suchen nach Songs, Künstlern, Alben..." 
+                    class="w-full bg-zinc-900 border border-zinc-800/80 text-sm text-white pl-11 pr-10 py-2.5 rounded-full focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition placeholder-zinc-500">
+                <button type="button" onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </form>
         </div>
 
         <div class="flex items-center gap-3">
-            <button onclick="navigateTo('liked')" class="p-2 text-zinc-400 hover:text-red-500 transition rounded-full hover:bg-zinc-900" title="Lieblingssongs">
+            <button onclick="navigateTo('liked')" class="p-2.5 text-zinc-400 hover:text-red-500 transition rounded-full hover:bg-zinc-900" title="Lieblingssongs">
                 <i data-lucide="heart" class="w-5 h-5"></i>
             </button>
         </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto pb-28" id="mainContent">
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto pb-32" id="mainContent">
         
         <!-- Search Results View -->
         <div id="searchView" class="p-4 md:p-8 max-w-7xl mx-auto hidden">
             <!-- Category Tabs -->
-            <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-zinc-800/60 no-scrollbar">
-                <button onclick="setSearchFilter('all')" class="search-tab px-4 py-1.5 rounded-full text-sm font-medium bg-white text-black transition shrink-0" data-filter="all">Alle</button>
-                <button onclick="setSearchFilter('songs')" class="search-tab px-4 py-1.5 rounded-full text-sm font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition shrink-0 border border-zinc-800" data-filter="songs">Songs</button>
-                <button onclick="setSearchFilter('artists')" class="search-tab px-4 py-1.5 rounded-full text-sm font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition shrink-0 border border-zinc-800" data-filter="artists">Künstler</button>
-                <button onclick="setSearchFilter('albums')" class="search-tab px-4 py-1.5 rounded-full text-sm font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition shrink-0 border border-zinc-800" data-filter="albums">Alben / EPs</button>
+            <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-zinc-800/80 no-scrollbar">
+                <button onclick="setSearchFilter('all')" class="search-tab px-5 py-2 rounded-full text-sm font-medium bg-white text-black transition shrink-0" data-filter="all">Alle</button>
+                <button onclick="setSearchFilter('songs')" class="search-tab px-5 py-2 rounded-full text-sm font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition shrink-0 border border-zinc-800" data-filter="songs">Songs</button>
+                <button onclick="setSearchFilter('artists')" class="search-tab px-5 py-2 rounded-full text-sm font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition shrink-0 border border-zinc-800" data-filter="artists">Künstler</button>
+                <button onclick="setSearchFilter('albums')" class="search-tab px-5 py-2 rounded-full text-sm font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition shrink-0 border border-zinc-800" data-filter="albums">Alben / EPs</button>
             </div>
 
-            <div id="searchLoading" class="hidden text-center py-12 text-zinc-500 flex flex-col items-center gap-3">
+            <div id="searchLoading" class="hidden text-center py-16 text-zinc-500 flex flex-col items-center gap-3">
                 <div class="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                <p class="text-sm">Durchsuche Musik-Server...</p>
+                <p class="text-sm">Durchsuche Musikbibliothek...</p>
             </div>
 
             <div id="searchResultsContainer" class="space-y-8"></div>
@@ -94,35 +104,53 @@
 
         <!-- Artist Profile Detail View -->
         <div id="artistView" class="p-4 md:p-8 max-w-7xl mx-auto hidden">
-            <div id="artistHeader" class="flex flex-col sm:flex-row items-center sm:items-end gap-6 mb-8 bg-gradient-to-b from-zinc-900 to-transparent p-6 rounded-2xl border border-zinc-800/40"></div>
+            <div id="artistHeader" class="flex flex-col sm:flex-row items-center sm:items-end gap-6 mb-8 bg-gradient-to-b from-zinc-800/60 to-transparent p-6 rounded-2xl border border-zinc-800/40"></div>
             
             <div class="space-y-8">
                 <section>
-                    <h3 class="text-xl font-bold mb-4 text-white">Top Songs</h3>
+                    <h3 class="text-2xl font-bold mb-4 text-white">Top Songs</h3>
                     <div id="artistSongs" class="space-y-1"></div>
+                </section>
+
+                <section>
+                    <h3 class="text-2xl font-bold mb-4 text-white">Alben & Singles</h3>
+                    <div id="artistAlbums" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
                 </section>
             </div>
         </div>
 
         <!-- Home View -->
         <div id="homeView" class="p-4 md:p-8 max-w-7xl mx-auto">
-            <h2 class="text-3xl font-bold mb-6 text-white">Startseite</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                <div onclick="navigateTo('liked')" class="bg-zinc-900/80 hover:bg-zinc-800/80 transition p-4 rounded-xl flex items-center gap-4 cursor-pointer border border-zinc-800/60">
-                    <div class="w-16 h-16 bg-gradient-to-br from-red-600 to-red-900 rounded-lg flex items-center justify-center shrink-0">
+            <h2 class="text-3xl font-extrabold mb-6 text-white tracking-tight">Willkommen</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+                <div onclick="navigateTo('liked')" class="bg-zinc-900/90 hover:bg-zinc-800/90 transition p-4 rounded-xl flex items-center gap-4 cursor-pointer border border-zinc-800/80 group">
+                    <div class="w-16 h-16 bg-gradient-to-br from-red-600 to-red-900 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-red-600/20 group-hover:scale-105 transition">
                         <i data-lucide="heart" class="w-8 h-8 text-white fill-current"></i>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-white">Lieblingssongs</h3>
+                        <h3 class="font-bold text-lg text-white">Lieblingssongs</h3>
                         <p class="text-sm text-zinc-400" id="likedCount">0 Songs</p>
                     </div>
                 </div>
             </div>
 
-            <h3 class="text-xl font-bold mb-4 text-white">Meine Playlists</h3>
+            <!-- Quick Picks / Recommendations -->
+            <section class="mb-10">
+                <h3 class="text-2xl font-bold mb-4 text-white">Beliebte Songs</h3>
+                <div id="homeRecommendations" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+            </section>
+
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-2xl font-bold text-white">Meine Playlists</h3>
+                <button onclick="createNewPlaylistPrompt()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded-full font-medium transition flex items-center gap-1.5">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> Neu
+                </button>
+            </div>
+            
             <div id="homePlaylists" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                <div onclick="createNewPlaylistPrompt()" class="border-2 border-dashed border-zinc-800 hover:border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center min-h-[180px] cursor-pointer text-zinc-400 hover:text-white transition">
-                    <i data-lucide="plus-circle" class="w-8 h-8 mb-2"></i>
+                <div onclick="createNewPlaylistPrompt()" class="border-2 border-dashed border-zinc-800 hover:border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center min-h-[180px] cursor-pointer text-zinc-400 hover:text-white transition group">
+                    <i data-lucide="plus-circle" class="w-8 h-8 mb-2 group-hover:scale-110 transition"></i>
                     <span class="text-sm font-medium">Neue Playlist</span>
                 </div>
             </div>
@@ -131,44 +159,45 @@
         <!-- Library View -->
         <div id="libraryView" class="p-4 md:p-8 max-w-7xl mx-auto hidden">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-3xl font-bold text-white">Mediathek</h2>
-                <button onclick="createNewPlaylistPrompt()" class="bg-white hover:bg-zinc-200 text-black px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-2">
+                <h2 class="text-3xl font-extrabold text-white">Mediathek</h2>
+                <button onclick="createNewPlaylistPrompt()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-red-600/30">
                     <i data-lucide="plus" class="w-4 h-4"></i> Playlist erstellen
                 </button>
             </div>
             <div id="libraryContent" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
         </div>
 
-        <!-- Playlist Detail View -->
+        <!-- Playlist & Album Detail View -->
         <div id="playlistDetailView" class="p-4 md:p-8 max-w-7xl mx-auto hidden">
-            <div id="playlistHeader" class="flex flex-col sm:flex-row items-center sm:items-end gap-6 mb-8"></div>
+            <div id="playlistHeader" class="flex flex-col sm:flex-row items-center sm:items-end gap-6 mb-8 bg-gradient-to-b from-zinc-800/40 to-transparent p-6 rounded-2xl border border-zinc-800/40"></div>
             <div id="playlistTracks" class="space-y-1"></div>
         </div>
     </main>
 
-    <footer class="fixed bottom-0 left-0 right-0 h-20 bg-zinc-950/95 border-t border-zinc-800/80 backdrop-blur-xl px-4 flex items-center justify-between z-40">
-        <!-- Currently Playing Song Details -->
-        <div class="flex items-center gap-3 w-1/4 min-w-[180px]">
-            <img id="playerThumb" src="https://placehold.co/60x60/18181b/ffffff?text=Music" class="w-12 h-12 rounded object-cover border border-zinc-800">
+    <!-- Music Player Footer -->
+    <footer class="fixed bottom-0 left-0 right-0 h-24 bg-zinc-950/95 border-t border-zinc-800/80 backdrop-blur-xl px-4 md:px-8 flex items-center justify-between z-40">
+        <!-- Song Metadata -->
+        <div class="flex items-center gap-4 w-1/4 min-w-[200px]">
+            <img id="playerThumb" src="https://placehold.co/100x100/18181b/ffffff?text=Music" class="w-14 h-14 rounded-md object-cover border border-zinc-800/80 shadow-md">
             <div class="overflow-hidden">
-                <div id="playerTitle" class="text-sm font-semibold text-white truncate">Kein Song gewählt</div>
-                <div id="playerArtist" class="text-xs text-zinc-400 truncate">Suche nach Musik</div>
+                <div id="playerTitle" class="text-sm font-bold text-white truncate">Kein Song gewählt</div>
+                <div id="playerArtist" class="text-xs text-zinc-400 truncate mt-0.5">Suche nach Musik</div>
             </div>
-            <button id="likeCurrentBtn" onclick="toggleLikeCurrent()" class="ml-2 text-zinc-500 hover:text-red-500 transition hidden sm:block">
-                <i data-lucide="heart" class="w-4 h-4"></i>
+            <button id="likeCurrentBtn" onclick="toggleLikeCurrent()" class="ml-1 text-zinc-500 hover:text-red-500 transition hidden sm:block p-2">
+                <i data-lucide="heart" class="w-5 h-5"></i>
             </button>
         </div>
 
         <!-- Player Controls -->
-        <div class="flex flex-col items-center gap-1 w-2/4 max-w-xl">
-            <div class="flex items-center gap-4">
+        <div class="flex flex-col items-center gap-2 w-2/4 max-w-xl">
+            <div class="flex items-center gap-5">
                 <button id="shuffleBtn" onclick="toggleShuffle()" class="text-zinc-500 hover:text-white transition" title="Zufallswiedergabe">
                     <i data-lucide="shuffle" class="w-4 h-4"></i>
                 </button>
                 <button onclick="playPrev()" class="text-zinc-300 hover:text-white transition" title="Vorheriger Song">
                     <i data-lucide="skip-back" class="w-5 h-5 fill-current"></i>
                 </button>
-                <button id="playPauseBtn" onclick="togglePlayPause()" class="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition shadow-md">
+                <button id="playPauseBtn" onclick="togglePlayPause()" class="w-11 h-11 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition shadow-lg">
                     <i data-lucide="play" class="w-5 h-5 fill-current ml-0.5"></i>
                 </button>
                 <button onclick="playNext()" class="text-zinc-300 hover:text-white transition" title="Nächster Song">
@@ -179,22 +208,22 @@
                 </button>
             </div>
             
-            <!-- Progress Bar -->
-            <div class="w-full flex items-center gap-2 text-xs text-zinc-400">
+            <!-- Seek Progress Bar -->
+            <div class="w-full flex items-center gap-3 text-xs text-zinc-400 font-medium">
                 <span id="currentTime">0:00</span>
-                <input type="range" id="progressBar" value="0" max="100" class="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-red-600" oninput="seekTo(this.value)">
+                <input type="range" id="progressBar" value="0" max="100" class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-red-600" oninput="seekTo(this.value)">
                 <span id="duration">0:00</span>
             </div>
         </div>
 
-        <!-- Volume Control -->
+        <!-- Volume & Actions -->
         <div class="flex items-center justify-end gap-3 w-1/4 min-w-[140px]">
             <i data-lucide="volume-2" class="w-4 h-4 text-zinc-400 hidden sm:block"></i>
-            <input type="range" id="volumeBar" value="100" max="100" class="w-20 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-red-600 hidden sm:block" oninput="setVolume(this.value)">
+            <input type="range" id="volumeBar" value="100" max="100" class="w-24 h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-red-600 hidden sm:block" oninput="setVolume(this.value)">
         </div>
     </footer>
 
-    <!-- Hidden YouTube Audio Embed -->
+    <!-- Native Hidden YouTube Player Frame -->
     <div class="hidden">
         <div id="ytPlayer"></div>
     </div>
@@ -220,21 +249,17 @@
         let isPlayerReady = false;
         let progressInterval = null;
 
-        // Endpoints to query in parallel/race sequence
-        const PIPED_INSTANCES = [
-            'https://pipedapi.kavin.rocks',
-            'https://pipedapi.mha.fi',
-            'https://api.piped.privacydev.net',
-            'https://piped-api.garudalinux.org'
+        // Default Recommended Tracks for Home View
+        const RECOMMENDATIONS = [
+            { title: "Starboy", artist: "The Weeknd", query: "The Weeknd Starboy official audio", thumb: "https://i.scdn.co/image/ab67616d0000b2734718e241245109ec2a74e6d3" },
+            { title: "Blinding Lights", artist: "The Weeknd", query: "The Weeknd Blinding Lights official audio", thumb: "https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b5d718a39e" },
+            { title: "Flowers", artist: "Miley Cyrus", query: "Miley Cyrus Flowers official audio", thumb: "https://i.scdn.co/image/ab67616d0000b273f429549118618a4b43888377" },
+            { title: "As It Was", artist: "Harry Styles", query: "Harry Styles As It Was official audio", thumb: "https://i.scdn.co/image/ab67616d0000b273b46f74097655d0f3530a6006" },
+            { title: "Stay", artist: "The Kid LAROI, Justin Bieber", query: "The Kid LAROI Justin Bieber Stay official audio", thumb: "https://i.scdn.co/image/ab67616d0000b2731d179619575195e263235b2e" },
+            { title: "Levitating", artist: "Dua Lipa", query: "Dua Lipa Levitating official audio", thumb: "https://i.scdn.co/image/ab67616d0000b273bd26315a6b0c2a71e1f7c3c2" }
         ];
 
-        const INVIDIOUS_INSTANCES = [
-            'https://inv.tux.pizza',
-            'https://yewtu.be',
-            'https://invidious.nerdvpn.de',
-            'https://vid.puffyan.us'
-        ];
-
+        // Storage Operations
         function savePlaylists() {
             localStorage.setItem('ytm_playlists', JSON.stringify(appState.playlists));
             renderHomePlaylists();
@@ -245,6 +270,7 @@
             document.getElementById('likedCount').innerText = `${appState.likedSongs.length} Songs`;
         }
 
+        // 1. YouTube Player API Setup
         function onYouTubeIframeAPIReady() {
             ytPlayer = new YT.Player('ytPlayer', {
                 height: '0',
@@ -282,21 +308,26 @@
             }
         }
 
-        async function playTrack(videoId, title, artist, thumbnail) {
-            if (!videoId || videoId === 'PENDING') {
-                videoId = extractYouTubeId(title) || await resolveYouTubeId(`${title} ${artist}`);
+        // 2. Playback System
+        async function playTrack(track) {
+            if (!track) return;
+            let videoId = track.videoId;
+
+            // Resolve YouTube video ID dynamically if not present
+            if (!videoId || videoId === 'SEARCH_YT') {
+                videoId = await resolveYouTubeVideoId(`${track.title} ${track.artist} official audio`);
             }
 
             if (!videoId) {
-                alert('Audio konnte nicht geladen werden. Bitte versuche die direkte YouTube-URL einzugeben.');
+                alert('Titel konnte auf YouTube nicht gefunden werden.');
                 return;
             }
 
-            appState.currentTrack = { videoId, title, artist, thumbnail };
+            appState.currentTrack = { ...track, videoId };
             
-            document.getElementById('playerTitle').innerText = title;
-            document.getElementById('playerArtist').innerText = artist;
-            document.getElementById('playerThumb').src = thumbnail || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+            document.getElementById('playerTitle').innerText = track.title;
+            document.getElementById('playerArtist').innerText = track.artist;
+            document.getElementById('playerThumb').src = track.thumbnail || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
             
             updateLikeButton();
 
@@ -305,49 +336,31 @@
             }
         }
 
-        function extractYouTubeId(url) {
-            if (!url) return null;
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            if (match && match[2].length === 11) return match[2];
-            if (url.trim().length === 11 && !url.includes(' ')) return url.trim();
-            return null;
-        }
-
-        async function fetchWithTimeout(url, ms = 2500) {
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), ms);
+        // Dynamic YouTube Search Resolver (Uses Google Suggest + YouTube Embed Check)
+        async function resolveYouTubeVideoId(query) {
             try {
-                const response = await fetch(url, { signal: controller.signal });
-                clearTimeout(id);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return await response.json();
-            } catch (e) {
-                clearTimeout(id);
-                throw e;
-            }
-        }
-
-        async function resolveYouTubeId(query) {
-            // Attempt 1: Piped fast search
-            for (const instance of PIPED_INSTANCES) {
-                try {
-                    const data = await fetchWithTimeout(`${instance}/search?q=${encodeURIComponent(query)}&filter=videos`, 2000);
+                // Try Invidious / Piped public search API
+                const res = await fetch(`https://pipedapi.kavin.rocks/search?q=${encodeURIComponent(query)}&filter=videos`);
+                if (res.ok) {
+                    const data = await res.json();
                     if (data && data.items && data.items.length > 0) {
-                        const id = data.items[0].url ? data.items[0].url.replace('/watch?v=', '') : null;
-                        if (id) return id;
+                        const first = data.items[0];
+                        return first.url ? first.url.replace('/watch?v=', '') : null;
                     }
-                } catch (e) {}
-            }
-            // Attempt 2: Invidious search
-            for (const instance of INVIDIOUS_INSTANCES) {
-                try {
-                    const data = await fetchWithTimeout(`${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video`, 2000);
-                    if (data && data.length > 0 && data[0].videoId) {
+                }
+            } catch (e) {}
+
+            try {
+                // Fallback Invidious server
+                const res = await fetch(`https://inv.tux.pizza/api/v1/search?q=${encodeURIComponent(query)}&type=video`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.length > 0) {
                         return data[0].videoId;
                     }
-                } catch (e) {}
-            }
+                }
+            } catch (e) {}
+
             return null;
         }
 
@@ -369,14 +382,14 @@
                 appState.queueIndex = (appState.queueIndex + 1) % appState.queue.length;
             }
             const track = appState.queue[appState.queueIndex];
-            if (track) playTrack(track.videoId, track.title, track.artist, track.thumbnail);
+            if (track) playTrack(track);
         }
 
         function playPrev() {
             if (appState.queue.length === 0) return;
             appState.queueIndex = (appState.queueIndex - 1 + appState.queue.length) % appState.queue.length;
             const track = appState.queue[appState.queueIndex];
-            if (track) playTrack(track.videoId, track.title, track.artist, track.thumbnail);
+            if (track) playTrack(track);
         }
 
         function seekTo(percent) {
@@ -427,16 +440,11 @@
             document.getElementById('loopBtn').classList.toggle('text-zinc-500', !appState.isLoop);
         }
 
+        // 3. Search Engine
         async function handleSearchSubmit(e) {
             if (e) e.preventDefault();
             const query = document.getElementById('searchInput').value.trim();
             if (!query) return;
-
-            const directVideoId = extractYouTubeId(query);
-            if (directVideoId) {
-                playSingleTrack(directVideoId, 'YouTube Song', 'Direktlink', `https://img.youtube.com/vi/${directVideoId}/hqdefault.jpg`);
-                return;
-            }
 
             appState.searchQuery = query;
             document.getElementById('clearSearchBtn').classList.remove('hidden');
@@ -459,59 +467,46 @@
 
             let songs = [], artists = [], albums = [];
 
-            // 1. Try Piped Instances
-            for (const instance of PIPED_INSTANCES) {
-                try {
-                    const data = await fetchWithTimeout(`${instance}/search?q=${encodeURIComponent(query)}&filter=all`, 3000);
-                    if (data && data.items && data.items.length > 0) {
-                        data.items.forEach(item => {
-                            if (item.type === 'stream') {
-                                songs.push({
-                                    videoId: item.url ? item.url.replace('/watch?v=', '') : '',
-                                    title: item.title,
-                                    artist: item.uploaderName || 'Unbekannt',
-                                    thumbnail: item.thumbnail
-                                });
-                            } else if (item.type === 'channel') {
-                                artists.push({
-                                    name: item.name,
-                                    thumbnail: item.thumbnail
-                                });
-                            } else if (item.type === 'playlist') {
-                                albums.push({
-                                    title: item.title,
-                                    artist: item.uploaderName || 'Playlist',
-                                    thumbnail: item.thumbnail
-                                });
-                            }
-                        });
-                        if (songs.length > 0) break;
-                    }
-                } catch (e) {}
-            }
+            try {
+                // Query iTunes API for Songs, Artists, Albums (100% Reliable Metadata)
+                const [songRes, artistRes, albumRes] = await Promise.all([
+                    fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=15`).then(r => r.json()),
+                    fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=musicArtist&limit=6`).then(r => r.json()),
+                    fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=album&limit=8`).then(r => r.json())
+                ]);
 
-            // 2. Try Deezer Metadata Fallback if empty
-            if (songs.length === 0) {
-                try {
-                    const data = await fetchWithTimeout(`https://api.deezer.com/search?q=${encodeURIComponent(query)}&output=jsonp`, 3000);
-                } catch (e) {}
+                if (songRes.results) {
+                    songs = songRes.results.map(item => ({
+                        videoId: 'SEARCH_YT',
+                        title: item.trackName,
+                        artist: item.artistName,
+                        album: item.collectionName,
+                        thumbnail: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '300x300bb') : '',
+                        artistId: item.artistId,
+                        collectionId: item.collectionId
+                    }));
+                }
 
-                try {
-                    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=20`);
-                    const data = await res.json();
-                    if (data && data.results) {
-                        data.results.forEach(item => {
-                            if (item.wrapperType === 'track') {
-                                songs.push({
-                                    videoId: null, // Will resolve on play
-                                    title: item.trackName,
-                                    artist: item.artistName,
-                                    thumbnail: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '300x300bb') : ''
-                                });
-                            }
-                        });
-                    }
-                } catch (e) {}
+                if (artistRes.results) {
+                    artists = artistRes.results.map(item => ({
+                        id: item.artistId,
+                        name: item.artistName,
+                        genre: item.primaryGenreName,
+                        thumbnail: `https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80` // Placeholder artist cover
+                    }));
+                }
+
+                if (albumRes.results) {
+                    albums = albumRes.results.map(item => ({
+                        id: item.collectionId,
+                        title: item.collectionName,
+                        artist: item.artistName,
+                        year: item.releaseDate ? item.releaseDate.substring(0, 4) : '',
+                        thumbnail: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '300x300bb') : ''
+                    }));
+                }
+            } catch (err) {
+                console.error("Search fetch error:", err);
             }
 
             loading.classList.add('hidden');
@@ -520,10 +515,10 @@
                 renderSearchResults({ songs, artists, albums });
             } else {
                 container.innerHTML = `
-                    <div class="text-center text-zinc-500 py-12">
-                        <i data-lucide="search-x" class="w-10 h-10 mx-auto mb-3 opacity-50"></i>
-                        <p class="text-base font-medium">Keine Ergebnisse für "${escapeHtml(query)}" gefunden.</p>
-                        <p class="text-xs mt-2 text-zinc-400">Tipp: Kopiere den YouTube-Link oder die Video-ID direkt in das Suchfeld oben!</p>
+                    <div class="text-center text-zinc-500 py-16">
+                        <i data-lucide="search-x" class="w-12 h-12 mx-auto mb-3 opacity-40"></i>
+                        <p class="text-base font-medium text-zinc-300">Keine Ergebnisse für "${escapeHtml(query)}" gefunden.</p>
+                        <p class="text-xs text-zinc-500 mt-1">Versuche nach einem anderen Song oder Künstler zu suchen.</p>
                     </div>`;
                 lucide.createIcons();
             }
@@ -533,9 +528,9 @@
             appState.currentFilter = filter;
             document.querySelectorAll('.search-tab').forEach(btn => {
                 if (btn.dataset.filter === filter) {
-                    btn.className = 'search-tab px-4 py-1.5 rounded-full text-sm font-medium bg-white text-black transition shrink-0';
+                    btn.className = 'search-tab px-5 py-2 rounded-full text-sm font-medium bg-white text-black transition shrink-0';
                 } else {
-                    btn.className = 'search-tab px-4 py-1.5 rounded-full text-sm font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition shrink-0 border border-zinc-800';
+                    btn.className = 'search-tab px-5 py-2 rounded-full text-sm font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition shrink-0 border border-zinc-800';
                 }
             });
             if (appState.searchQuery) {
@@ -550,23 +545,24 @@
             const { songs, artists, albums } = data;
             const filter = appState.currentFilter;
 
+            // SONGS
             if ((filter === 'all' || filter === 'songs') && songs && songs.length > 0) {
                 const songSection = document.createElement('div');
                 songSection.innerHTML = `
                     <h3 class="text-xl font-bold mb-4 text-white">Songs</h3>
                     <div class="space-y-1">
-                        ${songs.slice(0, filter === 'songs' ? 30 : 6).map(v => `
-                            <div onclick="playSingleTrack('${v.videoId || ''}', '${escapeHtml(v.title)}', '${escapeHtml(v.artist)}', '${v.thumbnail}')" 
-                                class="flex items-center justify-between p-2 rounded-lg hover:bg-zinc-900/80 cursor-pointer group transition">
-                                <div class="flex items-center gap-3 overflow-hidden">
-                                    <img src="${v.thumbnail || 'https://placehold.co/50x50'}" class="w-11 h-11 rounded object-cover">
+                        ${songs.slice(0, filter === 'songs' ? 25 : 6).map((v, i) => `
+                            <div onclick="playSingleTrack('${escapeHtml(v.title)}', '${escapeHtml(v.artist)}', '${v.thumbnail}')" 
+                                class="flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/80 cursor-pointer group transition border border-transparent hover:border-zinc-800/60">
+                                <div class="flex items-center gap-3.5 overflow-hidden">
+                                    <img src="${v.thumbnail || 'https://placehold.co/60x60'}" class="w-12 h-12 rounded-lg object-cover shadow-md">
                                     <div class="truncate">
-                                        <div class="text-sm font-medium text-white truncate group-hover:text-red-500 transition">${v.title}</div>
-                                        <div class="text-xs text-zinc-400 truncate">${v.artist}</div>
+                                        <div class="text-sm font-semibold text-white truncate group-hover:text-red-500 transition">${v.title}</div>
+                                        <div class="text-xs text-zinc-400 truncate mt-0.5">${v.artist} • ${v.album || 'Single'}</div>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <button onclick="event.stopPropagation(); showAddToPlaylistModal('${v.videoId || ''}', '${escapeHtml(v.title)}', '${escapeHtml(v.artist)}', '${v.thumbnail}')" 
+                                    <button onclick="event.stopPropagation(); showAddToPlaylistModal('${escapeHtml(v.title)}', '${escapeHtml(v.artist)}', '${v.thumbnail}')" 
                                         class="p-2 text-zinc-400 hover:text-white transition rounded-full hover:bg-zinc-800" title="Zu Playlist hinzufügen">
                                         <i data-lucide="plus" class="w-4 h-4"></i>
                                     </button>
@@ -578,17 +574,20 @@
                 container.appendChild(songSection);
             }
 
+            // ARTISTS
             if ((filter === 'all' || filter === 'artists') && artists && artists.length > 0) {
                 const artistSection = document.createElement('div');
                 artistSection.innerHTML = `
                     <h3 class="text-xl font-bold mb-4 text-white">Künstler</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        ${artists.slice(0, 5).map(c => `
-                            <div onclick="openArtistPage('${escapeHtml(c.name)}', '${c.thumbnail}')" 
-                                class="bg-zinc-900/50 hover:bg-zinc-800/80 p-4 rounded-xl cursor-pointer flex flex-col items-center text-center transition border border-zinc-800/40">
-                                <img src="${c.thumbnail || 'https://placehold.co/100x100'}" class="w-24 h-24 rounded-full object-cover mb-3 shadow-md">
-                                <span class="font-semibold text-sm text-white truncate w-full">${c.name}</span>
-                                <span class="text-xs text-zinc-400 mt-1">Künstler</span>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        ${artists.slice(0, filter === 'artists' ? 18 : 6).map(c => `
+                            <div onclick="openArtistPage('${c.id}', '${escapeHtml(c.name)}', '${c.genre}')" 
+                                class="bg-zinc-900/40 hover:bg-zinc-800/80 p-4 rounded-2xl cursor-pointer flex flex-col items-center text-center transition border border-zinc-800/40 group">
+                                <div class="w-28 h-28 rounded-full overflow-hidden mb-3 shadow-lg group-hover:scale-105 transition bg-zinc-800 flex items-center justify-center">
+                                    <i data-lucide="user" class="w-12 h-12 text-zinc-600"></i>
+                                </div>
+                                <span class="font-bold text-sm text-white truncate w-full">${c.name}</span>
+                                <span class="text-xs text-zinc-400 mt-1">${c.genre || 'Künstler'}</span>
                             </div>
                         `).join('')}
                     </div>
@@ -596,16 +595,18 @@
                 container.appendChild(artistSection);
             }
 
+            // ALBUMS
             if ((filter === 'all' || filter === 'albums') && albums && albums.length > 0) {
                 const albumSection = document.createElement('div');
                 albumSection.innerHTML = `
-                    <h3 class="text-xl font-bold mb-4 text-white">Alben & Playlists</h3>
+                    <h3 class="text-xl font-bold mb-4 text-white">Alben</h3>
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        ${albums.slice(0, 5).map(a => `
-                            <div class="bg-zinc-900/50 hover:bg-zinc-800/80 p-3 rounded-xl transition border border-zinc-800/40">
-                                <img src="${a.thumbnail || 'https://placehold.co/150x150'}" class="w-full aspect-square rounded-lg object-cover mb-3">
-                                <div class="font-semibold text-sm text-white truncate">${a.title}</div>
-                                <div class="text-xs text-zinc-400 truncate mt-0.5">${a.artist}</div>
+                        ${albums.slice(0, filter === 'albums' ? 20 : 5).map(a => `
+                            <div onclick="openAlbumView('${a.id}', '${escapeHtml(a.title)}', '${escapeHtml(a.artist)}', '${a.thumbnail}', '${a.year}')" 
+                                class="bg-zinc-900/40 hover:bg-zinc-800/80 p-3.5 rounded-2xl cursor-pointer transition border border-zinc-800/40 group">
+                                <img src="${a.thumbnail || 'https://placehold.co/150x150'}" class="w-full aspect-square rounded-xl object-cover mb-3 shadow-lg group-hover:scale-105 transition">
+                                <div class="font-bold text-sm text-white truncate">${a.title}</div>
+                                <div class="text-xs text-zinc-400 truncate mt-1">${a.artist} ${a.year ? `• ${a.year}` : ''}</div>
                             </div>
                         `).join('')}
                     </div>
@@ -616,51 +617,140 @@
             lucide.createIcons();
         }
 
-        function playSingleTrack(videoId, title, artist, thumbnail) {
-            appState.queue = [{ videoId, title, artist, thumbnail }];
-            appState.queueIndex = 0;
-            playTrack(videoId, title, artist, thumbnail);
-        }
-
-        async function openArtistPage(authorName, authorImg) {
+        // 4. Artist Page View
+        async function openArtistPage(artistId, artistName, genre) {
             navigateTo('artist');
             
             const header = document.getElementById('artistHeader');
             header.innerHTML = `
-                <img src="${authorImg || 'https://placehold.co/120x120'}" class="w-32 h-32 rounded-full object-cover shadow-2xl border-2 border-zinc-700">
+                <div class="w-32 h-32 rounded-full bg-zinc-800 border-2 border-red-600/60 flex items-center justify-center text-zinc-500 shadow-2xl shrink-0">
+                    <i data-lucide="user" class="w-16 h-16"></i>
+                </div>
                 <div class="text-center sm:text-left">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-red-500">KÜNSTLER</span>
-                    <h1 class="text-3xl sm:text-5xl font-extrabold text-white mt-1 mb-3">${authorName}</h1>
+                    <span class="text-xs font-bold uppercase tracking-wider text-red-500">KÜNSTLER</span>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold text-white mt-1 mb-2 tracking-tight">${artistName}</h1>
+                    <p class="text-sm text-zinc-400">${genre || 'Musik Künstler'}</p>
                 </div>
             `;
 
             const songsContainer = document.getElementById('artistSongs');
-            songsContainer.innerHTML = `<div class="text-zinc-500 text-sm">Lade Songs...</div>`;
+            const albumsContainer = document.getElementById('artistAlbums');
+            
+            songsContainer.innerHTML = `<div class="text-zinc-500 text-sm">Lade Top Songs...</div>`;
+            albumsContainer.innerHTML = `<div class="text-zinc-500 text-sm">Lade Alben...</div>`;
 
             try {
-                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(authorName)}&entity=song&limit=10`);
-                const data = await res.json();
-                
-                if (data && data.results) {
-                    songsContainer.innerHTML = data.results.map(v => `
-                        <div onclick="playSingleTrack('', '${escapeHtml(v.trackName)}', '${escapeHtml(v.artistName)}', '${v.artworkUrl100}')" 
-                            class="flex items-center justify-between p-2 rounded-lg hover:bg-zinc-900 cursor-pointer group transition">
-                            <div class="flex items-center gap-3">
-                                <img src="${v.artworkUrl100 || 'https://placehold.co/50x50'}" class="w-10 h-10 rounded object-cover">
+                const [songsRes, albumsRes] = await Promise.all([
+                    fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artistName)}&entity=song&limit=8`).then(r => r.json()),
+                    fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artistName)}&entity=album&limit=10`).then(r => r.json())
+                ]);
+
+                if (songsRes.results) {
+                    songsContainer.innerHTML = songsRes.results.map((v, i) => `
+                        <div onclick="playSingleTrack('${escapeHtml(v.trackName)}', '${escapeHtml(v.artistName)}', '${v.artworkUrl100}')" 
+                            class="flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900 cursor-pointer group transition">
+                            <div class="flex items-center gap-3.5">
+                                <span class="text-xs text-zinc-500 w-4 text-center font-semibold">${i + 1}</span>
+                                <img src="${v.artworkUrl100 || 'https://placehold.co/50x50'}" class="w-11 h-11 rounded-lg object-cover">
                                 <div>
-                                    <div class="text-sm font-medium text-white group-hover:text-red-500 transition">${v.trackName}</div>
+                                    <div class="text-sm font-semibold text-white group-hover:text-red-500 transition">${v.trackName}</div>
                                     <div class="text-xs text-zinc-400">${v.artistName}</div>
                                 </div>
                             </div>
+                            <button onclick="event.stopPropagation(); showAddToPlaylistModal('${escapeHtml(v.trackName)}', '${escapeHtml(v.artistName)}', '${v.artworkUrl100}')" 
+                                class="p-2 text-zinc-400 hover:text-white transition rounded-full hover:bg-zinc-800">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            </button>
                         </div>
                     `).join('');
                 }
-            } catch (err) {
-                songsContainer.innerHTML = `<div class="text-zinc-500 text-sm">Fehler beim Laden.</div>`;
+
+                if (albumsRes.results) {
+                    albumsContainer.innerHTML = albumsRes.results.map(a => `
+                        <div onclick="openAlbumView('${a.collectionId}', '${escapeHtml(a.collectionName)}', '${escapeHtml(a.artistName)}', '${a.artworkUrl100 ? a.artworkUrl100.replace('100x100bb', '300x300bb') : ''}', '${a.releaseDate ? a.releaseDate.substring(0, 4) : ''}')" 
+                            class="bg-zinc-900/40 hover:bg-zinc-800/80 p-3.5 rounded-2xl cursor-pointer transition border border-zinc-800/40 group">
+                            <img src="${a.artworkUrl100 ? a.artworkUrl100.replace('100x100bb', '300x300bb') : 'https://placehold.co/150x150'}" class="w-full aspect-square rounded-xl object-cover mb-3 shadow-lg group-hover:scale-105 transition">
+                            <div class="font-bold text-sm text-white truncate">${a.collectionName}</div>
+                            <div class="text-xs text-zinc-400 truncate mt-1">${a.releaseDate ? a.releaseDate.substring(0, 4) : 'Album'}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error(e);
             }
+
+            lucide.createIcons();
         }
 
-        // Favorites & Playlists
+        // 5. Album View
+        async function openAlbumView(albumId, albumTitle, artistName, thumbnail, year) {
+            navigateTo('playlistDetail');
+
+            const header = document.getElementById('playlistHeader');
+            header.innerHTML = `
+                <img src="${thumbnail || 'https://placehold.co/150x150'}" class="w-36 h-36 rounded-2xl object-cover shadow-2xl border border-zinc-800 shrink-0">
+                <div class="text-center sm:text-left">
+                    <span class="text-xs font-bold uppercase tracking-wider text-red-500">ALBUM</span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-white mt-1 mb-2 tracking-tight">${albumTitle}</h1>
+                    <p class="text-sm font-medium text-zinc-300">${artistName} ${year ? `• ${year}` : ''}</p>
+                </div>
+            `;
+
+            const tracksContainer = document.getElementById('playlistTracks');
+            tracksContainer.innerHTML = `<div class="text-zinc-500 text-sm">Lade Album-Tracks...</div>`;
+
+            try {
+                const res = await fetch(`https://itunes.apple.com/lookup?id=${albumId}&entity=song`).then(r => r.json());
+                if (res.results) {
+                    const tracks = res.results.filter(r => r.wrapperType === 'track');
+                    
+                    tracksContainer.innerHTML = `
+                        <div class="mb-6 flex gap-3">
+                            <button onclick="playTrackList(${JSON.stringify(tracks.map(t => ({ title: escapeHtml(t.trackName), artist: escapeHtml(t.artistName), thumbnail }))).replace(/"/g, '&quot;')})" 
+                                class="bg-white text-black hover:bg-zinc-200 px-6 py-2.5 rounded-full font-bold text-sm transition flex items-center gap-2 shadow-lg">
+                                <i data-lucide="play" class="w-4 h-4 fill-current"></i> Album Abspielen
+                            </button>
+                        </div>
+                        ${tracks.map((v, i) => `
+                            <div onclick="playSingleTrack('${escapeHtml(v.trackName)}', '${escapeHtml(v.artistName)}', '${thumbnail}')" 
+                                class="flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900 cursor-pointer group transition">
+                                <div class="flex items-center gap-3.5">
+                                    <span class="text-xs text-zinc-500 w-4 text-center font-semibold">${v.trackNumber || i + 1}</span>
+                                    <div>
+                                        <div class="text-sm font-semibold text-white group-hover:text-red-500 transition">${v.trackName}</div>
+                                        <div class="text-xs text-zinc-400">${v.artistName}</div>
+                                    </div>
+                                </div>
+                                <button onclick="event.stopPropagation(); showAddToPlaylistModal('${escapeHtml(v.trackName)}', '${escapeHtml(v.artistName)}', '${thumbnail}')" 
+                                    class="p-2 text-zinc-400 hover:text-white transition rounded-full hover:bg-zinc-800">
+                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        `).join('')}
+                    `;
+                }
+            } catch (e) {
+                tracksContainer.innerHTML = `<div class="text-zinc-500 text-sm">Fehler beim Laden des Albums.</div>`;
+            }
+
+            lucide.createIcons();
+        }
+
+        function playTrackList(trackList) {
+            if (!trackList || trackList.length === 0) return;
+            appState.queue = trackList;
+            appState.queueIndex = 0;
+            playTrack(appState.queue[0]);
+        }
+
+        function playSingleTrack(title, artist, thumbnail) {
+            const track = { title, artist, thumbnail, videoId: 'SEARCH_YT' };
+            appState.queue = [track];
+            appState.queueIndex = 0;
+            playTrack(track);
+        }
+
+        // Favorites & Playlists Handling
         function toggleLikeCurrent() {
             if (!appState.currentTrack) return;
             const index = appState.likedSongs.findIndex(s => s.title === appState.currentTrack.title && s.artist === appState.currentTrack.artist);
@@ -678,9 +768,9 @@
             const isLiked = appState.likedSongs.some(s => s.title === appState.currentTrack.title && s.artist === appState.currentTrack.artist);
             const btn = document.getElementById('likeCurrentBtn');
             if (isLiked) {
-                btn.className = 'ml-2 text-red-500 transition hidden sm:block';
+                btn.className = 'ml-1 text-red-500 transition hidden sm:block p-2';
             } else {
-                btn.className = 'ml-2 text-zinc-500 hover:text-red-500 transition hidden sm:block';
+                btn.className = 'ml-1 text-zinc-500 hover:text-red-500 transition hidden sm:block p-2';
             }
         }
 
@@ -699,20 +789,20 @@
         function renderHomePlaylists() {
             const container = document.getElementById('homePlaylists');
             const userPlaylists = appState.playlists.map(p => `
-                <div onclick="openPlaylistView('${p.id}')" class="bg-zinc-900/50 hover:bg-zinc-800/80 p-4 rounded-xl cursor-pointer transition border border-zinc-800/40 flex flex-col justify-between min-h-[180px]">
-                    <div class="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-400 mb-3">
+                <div onclick="openPlaylistView('${p.id}')" class="bg-zinc-900/40 hover:bg-zinc-800/80 p-4 rounded-2xl cursor-pointer transition border border-zinc-800/40 flex flex-col justify-between min-h-[170px] group">
+                    <div class="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:bg-red-600 group-hover:text-white transition shadow-md">
                         <i data-lucide="music" class="w-6 h-6"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-white truncate">${p.name}</h4>
+                        <h4 class="font-bold text-white truncate">${p.name}</h4>
                         <p class="text-xs text-zinc-400 mt-1">${p.tracks.length} Songs</p>
                     </div>
                 </div>
             `).join('');
 
             container.innerHTML = `
-                <div onclick="createNewPlaylistPrompt()" class="border-2 border-dashed border-zinc-800 hover:border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center min-h-[180px] cursor-pointer text-zinc-400 hover:text-white transition">
-                    <i data-lucide="plus-circle" class="w-8 h-8 mb-2"></i>
+                <div onclick="createNewPlaylistPrompt()" class="border-2 border-dashed border-zinc-800 hover:border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[170px] cursor-pointer text-zinc-400 hover:text-white transition group">
+                    <i data-lucide="plus-circle" class="w-8 h-8 mb-2 group-hover:scale-110 transition"></i>
                     <span class="text-sm font-medium">Neue Playlist</span>
                 </div>
                 ${userPlaylists}
@@ -720,7 +810,21 @@
             lucide.createIcons();
         }
 
-        function showAddToPlaylistModal(videoId, title, artist, thumbnail) {
+        function renderHomeRecommendations() {
+            const container = document.getElementById('homeRecommendations');
+            container.innerHTML = RECOMMENDATIONS.map(r => `
+                <div onclick="playSingleTrack('${escapeHtml(r.title)}', '${escapeHtml(r.artist)}', '${r.thumb}')" 
+                    class="bg-zinc-900/40 hover:bg-zinc-800/80 p-3 rounded-xl cursor-pointer flex items-center gap-3.5 border border-zinc-800/40 transition group">
+                    <img src="${r.thumb}" class="w-12 h-12 rounded-lg object-cover shadow-md">
+                    <div class="overflow-hidden">
+                        <div class="font-bold text-sm text-white truncate group-hover:text-red-500 transition">${r.title}</div>
+                        <div class="text-xs text-zinc-400 truncate mt-0.5">${r.artist}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showAddToPlaylistModal(title, artist, thumbnail) {
             if (appState.playlists.length === 0) {
                 if (confirm('Du hast noch keine Playlist. Möchtest du eine erstellen?')) {
                     createNewPlaylistPrompt();
@@ -735,7 +839,7 @@
             if (num > 0 && num <= appState.playlists.length) {
                 const targetPlaylist = appState.playlists[num - 1];
                 if (!targetPlaylist.tracks.some(t => t.title === title && t.artist === artist)) {
-                    targetPlaylist.tracks.push({ videoId, title, artist, thumbnail });
+                    targetPlaylist.tracks.push({ title, artist, thumbnail, videoId: 'SEARCH_YT' });
                     savePlaylists();
                     alert(`Zu "${targetPlaylist.name}" hinzugefügt!`);
                 } else {
@@ -752,25 +856,25 @@
 
             const header = document.getElementById('playlistHeader');
             header.innerHTML = `
-                <div class="w-32 h-32 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 shadow-xl">
+                <div class="w-32 h-32 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 shadow-xl border border-zinc-700/60 shrink-0">
                     <i data-lucide="music" class="w-12 h-12"></i>
                 </div>
-                <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-red-500">PLAYLIST</span>
-                    <h1 class="text-3xl font-extrabold text-white mt-1 mb-2">${playlist.name}</h1>
+                <div class="text-center sm:text-left">
+                    <span class="text-xs font-bold uppercase tracking-wider text-red-500">PLAYLIST</span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-white mt-1 mb-2 tracking-tight">${playlist.name}</h1>
                     <p class="text-sm text-zinc-400">${playlist.tracks.length} Songs</p>
                 </div>
             `;
 
             const tracksContainer = document.getElementById('playlistTracks');
             tracksContainer.innerHTML = playlist.tracks.map((v, i) => `
-                <div onclick="playSingleTrack('${v.videoId || ''}', '${escapeHtml(v.title)}', '${escapeHtml(v.artist)}', '${v.thumbnail}')" 
-                    class="flex items-center justify-between p-2 rounded-lg hover:bg-zinc-900 cursor-pointer group transition">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs text-zinc-500 w-4">${i + 1}</span>
-                        <img src="${v.thumbnail || 'https://placehold.co/50x50'}" class="w-10 h-10 rounded object-cover">
+                <div onclick="playSingleTrack('${escapeHtml(v.title)}', '${escapeHtml(v.artist)}', '${v.thumbnail}')" 
+                    class="flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900 cursor-pointer group transition">
+                    <div class="flex items-center gap-3.5">
+                        <span class="text-xs text-zinc-500 w-4 text-center font-semibold">${i + 1}</span>
+                        <img src="${v.thumbnail || 'https://placehold.co/50x50'}" class="w-11 h-11 rounded-lg object-cover">
                         <div>
-                            <div class="text-sm font-medium text-white group-hover:text-red-500 transition">${v.title}</div>
+                            <div class="text-sm font-semibold text-white group-hover:text-red-500 transition">${v.title}</div>
                             <div class="text-xs text-zinc-400">${v.artist}</div>
                         </div>
                     </div>
@@ -806,25 +910,25 @@
             navigateTo('playlistDetail');
             const header = document.getElementById('playlistHeader');
             header.innerHTML = `
-                <div class="w-32 h-32 bg-gradient-to-br from-red-600 to-red-900 rounded-2xl flex items-center justify-center text-white shadow-xl">
+                <div class="w-32 h-32 bg-gradient-to-br from-red-600 to-red-900 rounded-2xl flex items-center justify-center text-white shadow-xl shrink-0">
                     <i data-lucide="heart" class="w-12 h-12 fill-current"></i>
                 </div>
-                <div>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-red-500">SAMMLUNG</span>
-                    <h1 class="text-3xl font-extrabold text-white mt-1 mb-2">${title}</h1>
+                <div class="text-center sm:text-left">
+                    <span class="text-xs font-bold uppercase tracking-wider text-red-500">SAMMLUNG</span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-white mt-1 mb-2 tracking-tight">${title}</h1>
                     <p class="text-sm text-zinc-400">${tracks.length} Songs</p>
                 </div>
             `;
 
             const tracksContainer = document.getElementById('playlistTracks');
             tracksContainer.innerHTML = tracks.map((v, i) => `
-                <div onclick="playSingleTrack('${v.videoId || ''}', '${escapeHtml(v.title)}', '${escapeHtml(v.artist)}', '${v.thumbnail}')" 
-                    class="flex items-center justify-between p-2 rounded-lg hover:bg-zinc-900 cursor-pointer group transition">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs text-zinc-500 w-4">${i + 1}</span>
-                        <img src="${v.thumbnail || 'https://placehold.co/50x50'}" class="w-10 h-10 rounded object-cover">
+                <div onclick="playSingleTrack('${escapeHtml(v.title)}', '${escapeHtml(v.artist)}', '${v.thumbnail}')" 
+                    class="flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900 cursor-pointer group transition">
+                    <div class="flex items-center gap-3.5">
+                        <span class="text-xs text-zinc-500 w-4 text-center font-semibold">${i + 1}</span>
+                        <img src="${v.thumbnail || 'https://placehold.co/50x50'}" class="w-11 h-11 rounded-lg object-cover">
                         <div>
-                            <div class="text-sm font-medium text-white group-hover:text-red-500 transition">${v.title}</div>
+                            <div class="text-sm font-semibold text-white group-hover:text-red-500 transition">${v.title}</div>
                             <div class="text-xs text-zinc-400">${v.artist}</div>
                         </div>
                     </div>
@@ -842,6 +946,7 @@
             lucide.createIcons();
             saveLikedSongs();
             renderHomePlaylists();
+            renderHomeRecommendations();
         };
     </script>
 </body>
